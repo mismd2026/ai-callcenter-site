@@ -8,16 +8,15 @@ export default function Simulator({ aiRate, onAiRate }: { aiRate: number; onAiRa
   const [peak, setPeak] = useState(DEFAULT_WORKLOAD.peakCallsPerHour);
   const [humanAht, setHumanAht] = useState(DEFAULT_WORKLOAD.humanHandleTimeSec);
   const [opCost, setOpCost] = useState(DEFAULT_COSTS.operatorMonthlyCost);
-  const [attrition, setAttrition] = useState(DEFAULT_COSTS.annualAttritionRate);
 
   const result = useMemo(
     () =>
       compare(
         { ...DEFAULT_WORKLOAD, peakCallsPerHour: peak, humanHandleTimeSec: humanAht, aiResolutionRate: aiRate },
-        { ...DEFAULT_COSTS, operatorMonthlyCost: opCost, annualAttritionRate: attrition },
+        { ...DEFAULT_COSTS, operatorMonthlyCost: opCost },
         (c, m) => cheapestFee(c, m).fee ?? NaN,
       ),
-    [peak, humanAht, opCost, attrition, aiRate],
+    [peak, humanAht, opCost, aiRate],
   );
   const choice = cheapestFee(result.withAi.concurrentAiCalls, result.monthlyCalls);
   const custom = choice.fee == null;
@@ -59,7 +58,6 @@ export default function Simulator({ aiRate, onAiRate }: { aiRate: number; onAiRa
             onChange={setOpCost}
             hint="人件費・管理費・席代などを含む"
           />
-          <Slider label="年間の離職率" value={attrition} min={0} max={0.8} step={0.05} format={pct} onChange={setAttrition} hint="入れ替わり分の採用・研修費を月額に上乗せします" />
         </Card>
 
         <div className="space-y-5">
@@ -100,7 +98,7 @@ export default function Simulator({ aiRate, onAiRate }: { aiRate: number; onAiRa
         </div>
       </div>
       <Assumption>
-        AI 側の通話時間は1件4分、AI の同時通話数は3割の余裕を見込んでいます。ai-callcenter-ollama の試算ロジック（cost_model.py）をブラウザで動かしています。料金は下の「料金」の仮の価格です。
+        AI 側の通話時間は1件4分、AI の同時通話数は3割の余裕を見込んでいます。採用・研修・欠員にかかる費用は、数え方や期間で大きく変わるため含めていません（有人の費用は実際にはこれより大きくなります）。ai-callcenter-ollama の試算ロジック（cost_model.py）をブラウザで動かしています。料金は下の「料金」の仮の価格です。
       </Assumption>
     </Section>
   );

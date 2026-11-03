@@ -37,9 +37,9 @@ export interface Workload {
 }
 
 export interface CostAssumptions {
-  operatorMonthlyCost: number; // オペレーター1人の月額（人件費・管理費・席代を含む）
-  hiringCostPerOperator: number; // 採用・研修 1 人あたり
-  annualAttritionRate: number; // 年間の離職率（0〜1）
+  // オペレーター1人の月額（人件費・管理費・席代を含む）。
+  // 採用・研修・欠員の費用は、期間や数え方で大きく変わるため含めていない
+  operatorMonthlyCost: number;
   businessDaysPerMonth: number;
   dailyCallsPerPeakHour: number; // 1 日の件数 ≒ ピーク時 × この倍率
 }
@@ -53,8 +53,6 @@ export const DEFAULT_WORKLOAD: Workload = {
 
 export const DEFAULT_COSTS: CostAssumptions = {
   operatorMonthlyCost: 350_000,
-  hiringCostPerOperator: 200_000,
-  annualAttritionRate: 0.3,
   businessDaysPerMonth: 21,
   dailyCallsPerPeakHour: 7,
 };
@@ -80,8 +78,7 @@ export function compare(
   platformFee: (concurrentCalls: number, monthlyCalls: number) => number,
 ): Comparison {
   const monthlyCalls = Math.round(w.peakCallsPerHour * c.dailyCallsPerPeakHour * c.businessDaysPerMonth);
-  // 採用・研修費は離職で入れ替わる分を月割りで載せる
-  const perOperator = c.operatorMonthlyCost + (c.hiringCostPerOperator * c.annualAttritionRate) / 12;
+  const perOperator = c.operatorMonthlyCost;
 
   const humanErlangs = (w.peakCallsPerHour * w.humanHandleTimeSec) / 3600;
   const humanOps = agentsForServiceLevel(humanErlangs, w.humanHandleTimeSec);
