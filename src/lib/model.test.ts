@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { agentsForServiceLevel, compare, DEFAULT_COSTS, DEFAULT_WORKLOAD, erlangC } from './capacity';
 import { coverage, curve, DEFAULT_LEARNING, faqsForTarget, resolutionRate, weeksToTarget } from './learning';
 import { BY_APPROACH, BY_BILLING, meteredFee, PER_CALL_RANGE } from './market';
-import { SOURCES } from '../sources';
+import { PRICE_REFERENCES } from '../sources';
 
 describe('Erlang C（cost_model.py と同じ値）', () => {
   it('教科書の例：10アーラン・12人で待ち確率 ≒ 0.4494', () => {
@@ -38,7 +38,7 @@ describe('有人のみ と AI 併用 の比較', () => {
   });
 });
 
-describe('市場の価格帯', () => {
+describe('価格の目安', () => {
   it('従量課金は単価 × 件数', () => {
     expect(meteredFee(100, 2940)).toBe(294_000);
     expect(meteredFee(100, 0)).toBe(0);
@@ -48,11 +48,9 @@ describe('市場の価格帯', () => {
     expect(PER_CALL_RANGE.min).toBeLessThanOrEqual(PER_CALL_RANGE.typical);
     expect(PER_CALL_RANGE.typical).toBeLessThanOrEqual(PER_CALL_RANGE.max);
   });
-  it('価格帯の出典番号はすべて出典一覧にある', () => {
-    for (const r of [...BY_APPROACH, ...BY_BILLING]) {
-      expect(r.source).toBeGreaterThanOrEqual(1);
-      expect(r.source).toBeLessThanOrEqual(SOURCES.length);
-    }
+  it('目安には特定のサービス名を含めず、参考にした公開情報を複数件にする', () => {
+    expect(PRICE_REFERENCES.length).toBeGreaterThanOrEqual(3);
+    for (const r of [...BY_APPROACH, ...BY_BILLING]) expect(r.name).not.toMatch(/IVRy|Amazon|アイブリー/);
   });
 });
 

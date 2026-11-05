@@ -5,7 +5,7 @@ import Pricing from './sections/Pricing';
 import Simulator from './sections/Simulator';
 import Situation from './sections/Situation';
 import Why from './sections/Why';
-import { SOURCES } from './sources';
+import { PRICE_REFERENCES, SOURCES } from './sources';
 
 const NAV = [
   ['situation', '現状'],
@@ -13,7 +13,7 @@ const NAV = [
   ['launch', '立ち上げ比較'],
   ['simulator', '処理能力'],
   ['learning', '学習'],
-  ['pricing', '価格の相場'],
+  ['pricing', '価格の目安'],
   ['demo', 'デモ'],
 ] as const;
 
@@ -86,7 +86,7 @@ function Hero() {
             ['本稼働まで', '約4週', '有人なら約13週（想定）'],
             ['会話データ', '社外に出さない', '外部のクラウド AI 不使用'],
             ['人への切り替え', '3段階', 'FAQ 読み上げ → AI 回答 → 有人'],
-            ['価格の相場', '1件50〜200円', 'ボイスボットの従量課金'],
+            ['価格の目安', '1件50〜200円', '従量課金の場合（公開情報から整理）'],
           ].map(([k, v, s]) => (
             <div key={k}>
               <dt className="text-xs text-[#8B95A5]">{k}</dt>
@@ -141,8 +141,20 @@ function Footer() {
             ))}
           </ol>
         </div>
+        <div>
+          <div className="font-semibold text-[#AAB4C0] mb-2">価格の目安で参考にした公開情報</div>
+          <ul className="space-y-1">
+            {PRICE_REFERENCES.map((s) => (
+              <li key={s.url}>
+                <a href={s.url} className="hover:text-[#E8EAED] underline underline-offset-2">
+                  {s.title}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
         <p className="leading-relaxed">
-          このページはポートフォリオとして作成したプロトタイプの紹介ページです。試算・期間はすべて仮定にもとづく目安です。価格は各出典の掲載時点の市場の価格帯で、このプロトタイプの料金ではありません。
+          このページはポートフォリオとして作成したプロトタイプの紹介ページです。試算・期間はすべて仮定にもとづく目安です。価格は公開情報から整理した目安で、このプロトタイプの料金ではありません。掲載している社名・サービス名は各社の商標です。各社とは提携関係になく、掲載について各社の確認を得たものではありません。
         </p>
       </div>
     </footer>

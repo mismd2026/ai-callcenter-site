@@ -75,7 +75,7 @@ export default function Situation() {
           <div className="text-xs text-[#667085]">オペレーター不足</div>
           <div className="font-display font-bold text-3xl mt-2">続いている</div>
           <p className="text-sm text-[#475467] mt-2">
-            「2024年も、コールセンターのオペレーター人材は不足した状態が続いていた」とされ、業務の自動化ニーズは引き続き拡大しています。
+            2024年もオペレーターの人手不足は解消されず、業務を自動化したいという需要が広がり続けているとされています。
             <Ref n={3} />
           </p>
         </Card>
