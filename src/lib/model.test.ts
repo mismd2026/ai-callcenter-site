@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { agentsForServiceLevel, compare, DEFAULT_COSTS, DEFAULT_WORKLOAD, erlangC } from './capacity';
 import { coverage, curve, DEFAULT_LEARNING, faqsForTarget, resolutionRate, weeksToTarget } from './learning';
-import { breakEvenCalls, cheapestFee, monthlyFee, PLANS, planFor } from './pricing';
+import { BY_APPROACH, BY_BILLING, meteredFee, PER_CALL_RANGE } from './market';
+import { SOURCES } from '../sources';
 
 describe('Erlang C（cost_model.py と同じ値）', () => {
   it('教科書の例：10アーラン・12人で待ち確率 ≒ 0.4494', () => {
@@ -22,7 +23,7 @@ describe('Erlang C（cost_model.py と同じ値）', () => {
 });
 
 describe('有人のみ と AI 併用 の比較', () => {
-  const fee = (c: number, m: number) => cheapestFee(c, m).fee ?? 0;
+  const fee = (_c: number, m: number) => meteredFee(PER_CALL_RANGE.typical, m);
   it('AI の解決率が高いほど、必要な人数と費用が下がる', () => {
     const low = compare({ ...DEFAULT_WORKLOAD, aiResolutionRate: 0.3 }, DEFAULT_COSTS, fee);
     const high = compare({ ...DEFAULT_WORKLOAD, aiResolutionRate: 0.8 }, DEFAULT_COSTS, fee);
@@ -37,24 +38,21 @@ describe('有人のみ と AI 併用 の比較', () => {
   });
 });
 
-describe('料金', () => {
-  const small = PLANS[0];
-  it('サブスクは件数によらず定額、従量は件数に比例', () => {
-    expect(monthlyFee(small, 'subscription', 0)).toBe(120_000);
-    expect(monthlyFee(small, 'subscription', 9999)).toBe(120_000);
-    expect(monthlyFee(small, 'metered', 1000)).toBe(60_000 + 30 * 1000);
+describe('市場の価格帯', () => {
+  it('従量課金は単価 × 件数', () => {
+    expect(meteredFee(100, 2940)).toBe(294_000);
+    expect(meteredFee(100, 0)).toBe(0);
+    expect(meteredFee(-1, 100)).toBe(0);
   });
-  it('損益分岐の件数を境に、安い方式が切り替わる', () => {
-    const be = breakEvenCalls(small)!;
-    expect(be).toBe(2000);
-    expect(cheapestFee(5, be - 100).model).toBe('metered');
-    expect(cheapestFee(5, be + 100).model).toBe('subscription');
+  it('単価の相場は下限 ≦ 標準 ≦ 上限', () => {
+    expect(PER_CALL_RANGE.min).toBeLessThanOrEqual(PER_CALL_RANGE.typical);
+    expect(PER_CALL_RANGE.typical).toBeLessThanOrEqual(PER_CALL_RANGE.max);
   });
-  it('同時通話数に合うプランを選ぶ', () => {
-    expect(planFor(8).tier).toBe('small');
-    expect(planFor(80).tier).toBe('mid_take');
-    expect(planFor(500).tier).toBe('large');
-    expect(cheapestFee(500, 1).fee).toBeNull();
+  it('価格帯の出典番号はすべて出典一覧にある', () => {
+    for (const r of [...BY_APPROACH, ...BY_BILLING]) {
+      expect(r.source).toBeGreaterThanOrEqual(1);
+      expect(r.source).toBeLessThanOrEqual(SOURCES.length);
+    }
   });
 });
 
