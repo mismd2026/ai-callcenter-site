@@ -32,6 +32,10 @@ export const SOURCES = [
     title: '山形労働局「カスタマーハラスメント対策が2026年10月1日より義務化」',
     url: 'https://jsite.mhlw.go.jp/yamagata-roudoukyoku/content/contents/002734744.pdf',
   },
+];
+
+// 価格の目安を整理するときに参考にした公開情報（ページ内では個別に引用しない）
+export const PRICE_REFERENCES = [
   {
     title: 'オブライト「AIボイスボットで電話対応を自動化する費用」（2026年9月18日）',
     url: 'https://www.oflight.co.jp/ja/columns/ai-voicebot-phone-automation-cost-2026',
@@ -41,11 +45,7 @@ export const SOURCES = [
     url: 'https://saas.imitsu.jp/cate-voicebot/article/h-2565',
   },
   {
-    title: 'ITreview「アイブリー（IVRy）の価格・料金プラン」',
-    url: 'https://www.itreview.jp/products/ivry/price',
-  },
-  {
-    title: 'cloudpack「Amazon Connect の料金」（2026年4月17日更新）',
-    url: 'https://cloudpack.jp/column/cost-optimization/amazon-connect-pricing-2026-ai.html',
+    title: 'ITトレンド「ボイスボットの料金相場」（2026年10月19日更新）',
+    url: 'https://it-trend.jp/voice-bot/article/1066-4935',
   },
 ];
