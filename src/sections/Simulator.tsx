@@ -1,29 +1,28 @@
 import { useMemo, useState } from 'react';
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { compare, DEFAULT_COSTS, DEFAULT_WORKLOAD } from '../lib/capacity';
-import { cheapestFee } from '../lib/pricing';
-import { Assumption, Card, num, pct, Section, Slider, Stat, yen } from '../components/ui';
+import { meteredFee, PER_CALL_RANGE } from '../lib/market';
+import { Assumption, Card, num, pct, Ref, Section, Slider, Stat, yen } from '../components/ui';
 
 export default function Simulator({ aiRate, onAiRate }: { aiRate: number; onAiRate: (r: number) => void }) {
   const [peak, setPeak] = useState(DEFAULT_WORKLOAD.peakCallsPerHour);
   const [humanAht, setHumanAht] = useState(DEFAULT_WORKLOAD.humanHandleTimeSec);
   const [opCost, setOpCost] = useState(DEFAULT_COSTS.operatorMonthlyCost);
+  const [perCall, setPerCall] = useState<number>(PER_CALL_RANGE.typical);
 
   const result = useMemo(
     () =>
       compare(
         { ...DEFAULT_WORKLOAD, peakCallsPerHour: peak, humanHandleTimeSec: humanAht, aiResolutionRate: aiRate },
         { ...DEFAULT_COSTS, operatorMonthlyCost: opCost },
-        (c, m) => cheapestFee(c, m).fee ?? NaN,
+        (_c, m) => meteredFee(perCall, m),
       ),
-    [peak, humanAht, opCost, aiRate],
+    [peak, humanAht, opCost, aiRate, perCall],
   );
-  const choice = cheapestFee(result.withAi.concurrentAiCalls, result.monthlyCalls);
-  const custom = choice.fee == null;
 
   const chart = [
     { name: '有人のみ', オペレーター: result.humanOnly.monthly, 'AI 利用料': 0 },
-    { name: 'AI 併用', オペレーター: result.withAi.operatorMonthly, 'AI 利用料': custom ? 0 : result.withAi.platformMonthly },
+    { name: 'AI 併用', オペレーター: result.withAi.operatorMonthly, 'AI 利用料': result.withAi.platformMonthly },
   ];
 
   return (
@@ -58,6 +57,16 @@ export default function Simulator({ aiRate, onAiRate }: { aiRate: number; onAiRa
             onChange={setOpCost}
             hint="人件費・管理費・席代などを含む"
           />
+          <Slider
+            label="AI 応対の単価（1件あたり）"
+            value={perCall}
+            min={PER_CALL_RANGE.min}
+            max={PER_CALL_RANGE.max}
+            step={10}
+            format={yen}
+            onChange={setPerCall}
+            hint="ボイスボットの従量課金の相場（1件50〜200円）の範囲で動かせます"
+          />
         </Card>
 
         <div className="space-y-5">
@@ -68,9 +77,9 @@ export default function Simulator({ aiRate, onAiRate }: { aiRate: number; onAiRa
               <Stat label="AI 併用の人数" value={`${result.withAi.operators}人`} tone="good" sub={`AI の同時通話 ${result.withAi.concurrentAiCalls}`} />
               <Stat
                 label="月額の差"
-                value={custom ? '個別見積もり' : yen(result.monthlySaving)}
-                tone="good"
-                sub={custom ? undefined : `1件あたり ${yen(result.humanOnly.perCall)} → ${yen(result.withAi.perCall)}`}
+                value={yen(result.monthlySaving)}
+                tone={result.monthlySaving >= 0 ? 'good' : 'muted'}
+                sub={`1件あたり ${yen(result.humanOnly.perCall)} → ${yen(result.withAi.perCall)}`}
               />
             </div>
           </Card>
@@ -78,7 +87,7 @@ export default function Simulator({ aiRate, onAiRate }: { aiRate: number; onAiRa
             <div className="flex flex-wrap items-baseline justify-between gap-2">
               <h3 className="font-semibold">月額の比較</h3>
               <span className="text-xs text-[#667085]">
-                AI の利用料：{choice.plan.label}・{choice.model === 'subscription' ? 'サブスク' : '従量課金'}（安いほうを自動で選択）
+                AI の利用料：{yen(perCall)} × 月 {num(result.monthlyCalls)}件（相場の従量課金で計算）
               </span>
             </div>
             <div className="h-64 mt-4">
@@ -98,7 +107,8 @@ export default function Simulator({ aiRate, onAiRate }: { aiRate: number; onAiRa
         </div>
       </div>
       <Assumption>
-        AI 側の通話時間は1件4分、AI の同時通話数は3割の余裕を見込んでいます。採用・研修・欠員にかかる費用は、数え方や期間で大きく変わるため含めていません（有人の費用は実際にはこれより大きくなります）。ai-callcenter-ollama の試算ロジック（cost_model.py）をブラウザで動かしています。料金は下の「料金」の仮の価格です。
+        AI 側の通話時間は1件4分、AI の同時通話数は3割の余裕を見込んでいます。採用・研修・欠員にかかる費用は、数え方や期間で大きく変わるため含めていません（有人の費用は実際にはこれより大きくなります）。ai-callcenter-ollama の試算ロジック（cost_model.py）をブラウザで動かしています。AI の利用料は、すべての電話をまず AI が受けるとして、ボイスボットの従量課金の相場で計算しています。
+        <Ref n={10} />
       </Assumption>
     </Section>
   );

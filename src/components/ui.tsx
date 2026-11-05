@@ -87,6 +87,15 @@ export function Stat({ label, value, sub, tone = 'default' }: { label: string; v
   );
 }
 
+/** 出典への参照（フッターの出典一覧 [n] へ飛ぶ） */
+export function Ref({ n }: { n: number }) {
+  return (
+    <a href={`#source-${n}`} className="text-[#0F9B8E] text-xs align-super ml-0.5 hover:underline">
+      [{n}]
+    </a>
+  );
+}
+
 export function Assumption({ children }: { children: ReactNode }) {
   return (
     <p className="text-xs text-[#98A2B3] mt-4 leading-relaxed">
